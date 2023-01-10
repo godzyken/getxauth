@@ -1,8 +1,7 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
-import 'package:getxfire/getxfire.dart';
+import 'package:getxauth/app/helpers/exception_error.dart';
 
 import 'app/routes/app_pages.dart';
 import 'firebase_option.dart';
@@ -10,11 +9,15 @@ import 'firebase_option.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await GetxFire.init(
-    name: 'getxauth',
-    options: firebaseOptions,
-  );
-  AwesomeNotifications().initialize(
+  try {
+    await Firebase.initializeApp(
+      name: 'getxauth',
+      options: firebaseOptions,
+    );
+  } on FirebaseException catch (code, e) {
+    HandlerInfo.messageError(code, e);
+  }
+/*  AwesomeNotifications().initialize(
       // set the icon to null if you want to use the default app icon
       'resource://drawable/res_app_icon',
       [
@@ -39,7 +42,7 @@ Future<void> main() async {
       receivedNotification.id
     } // your page params. I recommend to you to pass all *receivedNotification* object
         );
-  });
+  });*/
 
   runApp(
     GetMaterialApp(
@@ -49,4 +52,3 @@ Future<void> main() async {
     ),
   );
 }
-

@@ -1,26 +1,21 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:getxauth/app/helpers/exception_error.dart';
 import 'package:getxauth/app/modules/auth/controllers/auth_controller.dart';
 
-class LoginController extends GetxController {
-  //TODO: Implement LoginController
-  GlobalKey<FormState> loginFormKey =
-      GlobalKey<FormState>(debugLabel: '_loginFormKey');
+class RegisterController extends GetxController {
+  //TODO: Implement RegisterController
+  final GlobalKey<FormState> registerFormKey = GlobalKey<FormState>();
   final authC = AuthController();
-  final pageController = PageController(initialPage: 1);
 
+  var name = TextEditingController().obs;
   var email = TextEditingController().obs;
   var password = TextEditingController().obs;
 
-  var pageChanged = 0.obs;
-
   final count = 0.obs;
-
   @override
   void onInit() {
-    loginAnonymously();
     super.onInit();
   }
 
@@ -30,19 +25,22 @@ class LoginController extends GetxController {
   }
 
   @override
-  void onClose() {
-    email.value.dispose();
-    password.value.dispose();
-  }
-
+  void onClose() {}
   void increment() => count.value++;
 
   void checkLogin() {
-    final isValid = loginFormKey.currentState!.validate();
+    final isValid = registerFormKey.currentState!.validate();
     if (!isValid) {
       return;
     }
-    loginFormKey.currentState!.save();
+    registerFormKey.currentState!.save();
+  }
+
+  String? validateName(String value) {
+    if (!GetUtils.isUsername(value)) {
+      return "Provide valid Username";
+    }
+    return null;
   }
 
   String? validateEmail(String value) {
@@ -59,24 +57,15 @@ class LoginController extends GetxController {
     return null;
   }
 
-  loginAnonymously() async {
+  regWithEmailPsd() async {
     try {
-      UserCredential user = await authC.loginAnonymously();
-      HandlerInfo.messageSuccess(user.user!.isAnonymous);
-    } on FirebaseAuthException catch (code, e) {
-      HandlerInfo.messageError(code, e);
-    }
-  }
-
-  logWithEmailPsd() async {
-    try {
-      UserCredential user =
+      var user =
           await authC.registerToFC(email.value.text, password.value.text);
-      HandlerInfo.messageSuccess(user.user!.displayName!);
+      HandlerInfo.messageSuccess(user.user);
       authC.isLoggin.isTrue;
       update();
-    } on FirebaseAuthException catch (code, e) {
-      HandlerInfo.messageError(code, e);
+    } on FirebaseAuthException catch (code, msg) {
+      HandlerInfo.messageError(code, msg);
       authC.isLoggin.isFalse;
       update();
     }

@@ -1,4 +1,4 @@
-import 'package:getxfire/getxfire.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 FirebaseOptions get firebaseOptions {
   return const FirebaseOptions(

@@ -1,11 +1,13 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:getxauth/app/modules/auth/controllers/auth_controller.dart';
 
 class FirstMiddleware extends GetMiddleware {
-  final auth = AuthController();
+  final authC = AuthController();
 
-  bool? get islog => auth.authenticated;
+  bool? get islog => authC.authenticated;
 
   @override
   int? get priority => 2;
@@ -44,11 +46,11 @@ class FirstMiddleware extends GetMiddleware {
 
   @override
   GetPage? onPageCalled(GetPage? page) {
-    print('>>> Page ${page!.name} called');
-    print('>>> User ${auth.user!.uid} logged');
+    log('>>> Page ${page!.name} called');
+    log('>>> User ${authC.user.value!.uid} logged');
 
-    return auth.user!.displayName != null
-        ? page.copy(parameters: {'user': auth.user!.displayName!})
+    return authC.user.value!.displayName != null
+        ? page.copy(parameters: {'user': authC.user.value!.displayName!})
         : page;
   }
 }

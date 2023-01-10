@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/routes/route_middleware.dart';
 import 'package:getxauth/app/modules/auth/controllers/auth_controller.dart';
@@ -7,17 +9,19 @@ class SecondMiddleware extends GetMiddleware {
   @override
   int? get priority => 4;
 
-  final auth = AuthController();
-  bool get isProfileSet => auth.auth.currentUser!.emailVerified;
+  final authC = AuthController();
+  bool get isProfileSet => authC.auth!.currentUser!.emailVerified;
 
   @override
   RouteSettings? redirect(String? route) {
     if (isProfileSet == false) {
-      print('is redirect failed');
-      return RouteSettings(name: Routes.HOME, arguments: auth.user!.isAnonymous);
+      log('is redirect failed');
+      return RouteSettings(
+          name: Routes.HOME, arguments: authC.user.value!.isAnonymous);
     } else {
-      print('is redirect success');
-      return RouteSettings(name: Routes.PROFILE,  arguments: auth.user!.uid);
+      log('is redirect success');
+      return RouteSettings(
+          name: Routes.PROFILE, arguments: authC.user.value!.uid);
     }
   }
 }

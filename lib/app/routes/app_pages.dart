@@ -9,6 +9,8 @@ import 'package:getxauth/app/modules/login/bindings/login_binding.dart';
 import 'package:getxauth/app/modules/login/views/login_view.dart';
 import 'package:getxauth/app/modules/profile/bindings/profile_binding.dart';
 import 'package:getxauth/app/modules/profile/views/profile_view.dart';
+import 'package:getxauth/app/modules/register/bindings/register_binding.dart';
+import 'package:getxauth/app/modules/register/views/register_view.dart';
 
 part 'app_routes.dart';
 
@@ -39,5 +41,10 @@ class AppPages {
       page: () => AuthView(),
       binding: AuthBinding(),
     ),
+    // GetPage(
+    //   name: _Paths.REGISTER,
+    //   page: () => RegisterView(),
+    //   binding: RegisterBinding(),
+    // ),
   ];
 }

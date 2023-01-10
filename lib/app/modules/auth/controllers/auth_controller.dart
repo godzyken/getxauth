@@ -1,10 +1,15 @@
+import 'dart:async';
+import 'dart:developer';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:getxfire/getxfire.dart';
+import 'package:getxauth/app/helpers/exception_error.dart';
 
 class AuthController extends GetxController {
-  //TODO: Implement AuthController
-  final auth = GetxFire.auth;
-  final user = GetxFire.currentUser;
+  static AuthController get find => Get.find<AuthController>();
+  FirebaseAuth? auth;
+  late Rx<User?> user;
 
   final count = 0.obs;
   var isLoggin = false.obs;
@@ -15,9 +20,13 @@ class AuthController extends GetxController {
 
   @override
   void onInit() {
+    auth = FirebaseAuth.instance;
+    user = Rx<User?>(auth!.currentUser);
+
     ever(isLoggin, handleAuth);
+
     isLoggin.value = user != null;
-    GetxFire.userChanges().listen((event) {
+    auth?.userChanges().listen((event) {
       isLoggin.value = user != null;
     });
 
@@ -37,57 +46,46 @@ class AuthController extends GetxController {
   void increment() => count.value++;
 
   loginAnonymously() async {
-    await GetxFire.signInAnonymously(
-      onSuccess: (userCredential) {
-        GetxFire.openDialog.messageSuccess(
-          'user is anonymous : ${userCredential!.user}',
-          title: 'Anonymous',
-          duration: const Duration(seconds: 10),
-        );
-        isLoggin.value = true;
-      },
-      onError: (code, msg) {
-        GetxFire.openDialog.messageError(
-          'Failed to sign in anonymously\n$msg',
-          title: 'Fail connection',
-          duration: const Duration(seconds: 10),
-        );
-        isLoggin.value = false;
-      },
-      isErrorDialog: true,
-      isSuccessDialog: true,
-    );
+    await auth!.signInAnonymously();
   }
 
-  signOut() async {
-    await GetxFire.openDialog.confirm(
-      onYesClicked: onYesClicked,
-      content: "Are you sure to sign out?",
-      lottiePath: GetxFire.lottiePath.THINKING,
-    );
+  logWithGoogle() async {
+    await auth!.signInWithProvider(GoogleAuthProvider());
+  }
+
+  registerToFC(String? email, String? password) {
+    return auth!
+        .createUserWithEmailAndPassword(email: email!, password: password!)
+        .onError(
+            (error, stackTrace) => HandlerInfo.messageError(error, stackTrace))
+        .catchError(onError);
+  }
+
+  signOut() {
+    auth!.signOut();
   }
 
   onYesClicked() async {
-    if (user == null) {
-      GetxFire.openDialog.info(
-        content: 'no one has signed in.',
-        title: 'Erreur Auth',
+    if (user.value == null) {
+      Get.defaultDialog(
+        content: const Text('no one has signed in.'),
+        title: 'Error Authentication',
       );
       return;
     }
-    await GetxFire.signOut();
+    await auth!.signOut();
 
-    final String uid = user!.uid;
-    GetxFire.openDialog.info(
-      content: '$uid has successfully signed out.',
+    final String uid = user.value!.uid;
+    Get.defaultDialog(
       title: 'Success Sign Out',
+      content: Text('$uid has successfully signed out.'),
     );
     isLoggin.value = false;
   }
 
   handleAuth(isLogged) {
     if (isLogged) {
-      Get.offAllNamed('/home', arguments: auth.currentUser);
+      Get.offAllNamed('/home', arguments: auth!.currentUser);
       isLoggin.value = true;
       update();
     } else {
@@ -95,5 +93,18 @@ class AuthController extends GetxController {
       isLoggin.value = false;
       update();
     }
+  }
+
+  onError(credential) async {
+    Future.delayed(
+      const Duration(seconds: 1),
+      () => throw 401,
+    ).then((value) {
+      throw 'Unreachable $credential';
+    }).catchError((err) {
+      log('Error: $err'); // Prints 401.
+    }, test: (error) {
+      return error is int && error >= 400;
+    });
   }
 }
